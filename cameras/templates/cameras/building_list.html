@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Список зданий{% endblock %}
+{% block content %}
+<h2>Список зданий</h2>
+{% if buildings %}
+    <div class="row">
+        {% for building in buildings %}
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'building_detail' building.id %}">{{ building.name }}</a>
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>Здания отсутствуют.</p>
+{% endif %}
+<a href="{% url 'create_building' %}" class="btn btn-primary mt-3">Добавить здание</a>
+{% endblock %}
