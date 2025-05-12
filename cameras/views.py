@@ -26,32 +26,54 @@ def building_list(request):
 def building_detail(request, building_id):
     building = get_object_or_404(Building, id=building_id)
     cameras = building.cameras.all()
-    paginator = Paginator(cameras, 4)  # 4 камеры на страницу
+    paginator = Paginator(cameras, 4)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
-    if request.method == 'POST':
-        if 'add_camera' in request.POST:
-            camera_form = CameraForm(request.POST)
-            if camera_form.is_valid():
-                camera = camera_form.save(commit=False)
-                camera.building = building
-                camera.save()
-                return redirect('building_detail', building_id=building_id)
-        else:
-            form = BuildingForm(request.POST, instance=building)
-            if form.is_valid():
-                form.save()
-                return redirect('building_detail', building_id=building_id)
-    else:
-        form = BuildingForm(instance=building)
-        camera_form = CameraForm()
-
     return render(request, 'cameras/building_detail.html', {
         'building': building,
         'page_obj': page_obj,
-        'form': form,
-        'camera_form': camera_form
+    })
+
+
+def building_edit(request, building_id):
+    building = get_object_or_404(Building, id=building_id)
+    cameras = building.cameras.all()
+
+    if request.method == 'POST':
+        if 'save_building' in request.POST:
+            building_form = BuildingForm(request.POST, instance=building)
+            if building_form.is_valid():
+                building_form.save()
+                return redirect('building_detail', building_id=building_id)
+        elif 'add_camera' in request.POST:
+            new_camera_form = CameraForm(request.POST)
+            if new_camera_form.is_valid():
+                camera = new_camera_form.save(commit=False)
+                camera.building = building
+                camera.save()
+                return redirect('building_edit', building_id=building_id)
+        elif any(key.startswith('save_camera_') for key in request.POST):
+            for camera in cameras:
+                if f'save_camera_{camera.id}' in request.POST:
+                    camera_form = CameraForm(request.POST, instance=camera)
+                    if camera_form.is_valid():
+                        camera_form.save()
+                    return redirect('building_edit', building_id=building_id)
+        elif any(key.startswith('delete_camera_') for key in request.POST):
+            for camera in cameras:
+                if f'delete_camera_{camera.id}' in request.POST:
+                    camera.delete()
+                    return redirect('building_edit', building_id=building_id)
+
+    building_form = BuildingForm(instance=building)
+    camera_forms = [CameraForm(instance=camera) for camera in cameras]
+    new_camera_form = CameraForm()
+
+    return render(request, 'cameras/building_edit.html', {
+        'building': building,
+        'building_form': building_form,
+        'camera_forms': camera_forms,
+        'new_camera_form': new_camera_form,
     })
 
 
@@ -95,3 +117,7 @@ def district_list(request, region_id=None):
 
 def users(request):
     return render(request, 'users/users.html')
+
+
+def reports(request):
+    return render(request, 'reports/reports.html')

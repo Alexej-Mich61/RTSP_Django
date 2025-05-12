@@ -2,32 +2,38 @@
 {% block title %}Детали здания: {{ building.name }}{% endblock %}
 {% block content %}
 <h2>{{ building.name }}</h2>
-<h3>Редактировать здание</h3>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Сохранить</button>
-</form>
-<h3 class="mt-4">Камеры</h3>
+<div class="card mb-4">
+    <div class="card-body">
+        <p><strong>Название:</strong> {{ building.name }}</p>
+        <p><strong>Адрес:</strong> {{ building.address }}</p>
+        <p><strong>Министерство:</strong> {{ building.ministry|default:"Не указано" }}</p>
+        <p><strong>Регион:</strong> {{ building.region|default:"Не указано" }}</p>
+        <p><strong>Район:</strong> {{ building.district|default:"Не указано" }}</p>
+        <p><strong>Контакты:</strong> {{ building.contacts|default:"Не указано" }}</p>
+        <a href="{% url 'building_edit' building.id %}" class="btn btn-primary">Редактировать</a>
+    </div>
+</div>
+<h3>Камеры</h3>
 {% if page_obj %}
-    <div class="camera-list">
+    <div class="row camera-list">
         {% for camera in page_obj %}
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">{{ camera.name }}</h5>
-                    <p class="card-text"><strong>RTSP URL:</strong> {{ camera.rtsp_url }}</p>
-                    <p class="card-text"><strong>Статус:</strong> {% if camera.is_active %}Активна{% else %}Неактивна{% endif %}</p>
-                    {% if camera.is_active %}
-                        <a href="{% url 'stream_camera' camera.id %}" class="btn btn-sm btn-primary">Смотреть поток</a>
-                    {% endif %}
-                    <a href="{% url 'delete_camera' camera.id %}" class="btn btn-sm btn-danger">Удалить</a>
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ camera.name }}</h5>
+                        <p><strong>RTSP URL:</strong> {{ camera.rtsp_url }}</p>
+                        <p><strong>Статус:</strong> {% if camera.is_active %}Активна{% else %}Неактивна{% endif %}</p>
+                        {% if camera.is_active %}
+                            <img src="{% url 'stream_camera' camera.id %}" class="img-fluid" alt="{{ camera.name }} stream" style="max-height: 200px;">
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         {% endfor %}
     </div>
     {% if page_obj.has_other_pages %}
         <nav aria-label="Camera pagination">
-            <ul class="pagination">
+            <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
                     <li class="page-item">
                         <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Предыдущая</a>
@@ -57,10 +63,4 @@
 {% else %}
     <p>Камеры отсутствуют.</p>
 {% endif %}
-<h4 class="mt-4">Добавить камеру</h4>
-<form method="post" action="{% url 'building_detail' building.id %}">
-    {% csrf_token %}
-    {{ camera_form.as_p }}
-    <button type="submit" name="add_camera" class="btn btn-primary">Добавить камеру</button>
-</form>
 {% endblock %}

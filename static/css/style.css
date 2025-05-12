@@ -10,6 +10,21 @@ body {
 .camera-list .card {
     min-height: 150px;
 }
+.camera-list img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+}
 .pagination {
     justify-content: center;
+}
+.table th, .table td {
+    vertical-align: middle;
+}
+.table input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+}
+.table .form-check {
+    text-align: center;
 }
