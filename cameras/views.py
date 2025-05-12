@@ -19,8 +19,45 @@ def create_building(request):
 
 
 def building_list(request):
-    buildings = Building.objects.all()
-    return render(request, 'cameras/building_list.html', {'buildings': buildings})
+    # Получить районы с хотя бы одним зданием, отсортированные по имени
+    districts = District.objects.filter(buildings__isnull=False).distinct().order_by('name')
+    district_data = []
+
+    for district in districts:
+        buildings = Building.objects.filter(district=district).order_by('name')
+        building_count = buildings.count()
+        buildings_with_cameras = [
+            {
+                'building': building,
+                'camera_count': building.cameras.count()
+            }
+            for building in buildings
+        ]
+        district_data.append({
+            'district': district,
+            'building_count': building_count,
+            'buildings': buildings_with_cameras
+        })
+
+    # Добавить здания без района
+    no_district_buildings = Building.objects.filter(district__isnull=True).order_by('name')
+    if no_district_buildings.exists():
+        no_district_buildings_with_cameras = [
+            {
+                'building': building,
+                'camera_count': building.cameras.count()
+            }
+            for building in no_district_buildings
+        ]
+        district_data.append({
+            'district': None,
+            'building_count': no_district_buildings.count(),
+            'buildings': no_district_buildings_with_cameras
+        })
+
+    return render(request, 'cameras/building_list.html', {
+        'district_data': district_data
+    })
 
 
 def building_detail(request, building_id):

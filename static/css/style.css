@@ -28,3 +28,9 @@ body {
 .table .form-check {
     text-align: center;
 }
+.list-group-item {
+    font-size: 1.1rem;
+}
+.badge {
+    font-size: 0.9rem;
+}
