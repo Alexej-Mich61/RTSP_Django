@@ -21,15 +21,33 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">{{ camera.name }}</h5>
-                        <p><strong>RTSP URL:</strong> {{ camera.rtsp_url }}</p>
                         <p><strong>Статус:</strong> {% if camera.is_active %}Активна{% else %}Неактивна{% endif %}</p>
                         {% if camera.is_active %}
-                            <img src="{% url 'stream_camera' camera.id %}" class="img-fluid" alt="{{ camera.name }} stream" style="max-height: 200px;">
+                            <div class="camera-stream position-relative">
+                                <img src="{% url 'stream_camera' camera.id %}" class="img-fluid" alt="{{ camera.name }} stream" style="max-height: 200px;">
+                                <button class="btn btn-sm btn-secondary fullscreen-btn" data-camera-id="{{ camera.id }}" title="Полноэкранный режим">
+                                    <i class="bi bi-arrows-fullscreen"></i>
+                                </button>
+                            </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
         {% endfor %}
+    </div>
+    <!-- Модальное окно для полноэкранного просмотра -->
+    <div class="modal fade" id="fullscreenModal" tabindex="-1" aria-labelledby="fullscreenModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fullscreenModalLabel">Полноэкранный просмотр камеры</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="fullscreenStream" src="" class="img-fluid" alt="Fullscreen stream" style="max-height: 100%; max-width: 100%;">
+                </div>
+            </div>
+        </div>
     </div>
     {% if page_obj.has_other_pages %}
         <nav aria-label="Camera pagination">
