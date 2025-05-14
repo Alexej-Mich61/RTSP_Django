@@ -10,10 +10,10 @@ body {
 .camera-list .card {
     min-height: 150px;
 }
-.camera-list img {
+.camera-list .camera-image {
     width: 100%;
-    max-height: 200px;
-    object-fit: cover;
+    max-height: 300px; /* Ограничение высоты для камер */
+    object-fit: contain; /* Сохраняет пропорции без обрезки */
 }
 .camera-stream {
     position: relative;
@@ -37,10 +37,10 @@ body {
 .modal-fullscreen img {
     width: 100%;
     height: 90vh;
-    object-fit: contain; /* Сохраняет пропорции, заполняя экран */
+    object-fit: contain; /* Сохраняет пропорции в полноэкранном режиме */
 }
 .modal-fullscreen .btn-close {
-    filter: invert(1); /* Делает иконку закрытия белой для контраста */
+    filter: invert(1); /* Белая иконка закрытия */
 }
 .pagination {
     justify-content: center;
@@ -60,4 +60,7 @@ body {
 }
 .badge {
     font-size: 0.9rem;
+}
+.col-md-3 h2 {
+    font-size: 1.5rem; /* Уменьшенный шрифт для заголовка здания */
 }
