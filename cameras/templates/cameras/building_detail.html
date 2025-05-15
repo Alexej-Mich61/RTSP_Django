@@ -1,92 +1,60 @@
 {% extends 'base.html' %}
-{% block title %}Детали здания: {{ building.name }}{% endblock %}
+{% block title %}{{ building.name }}{% endblock %}
 {% block content %}
-<div class="container-fluid">
+<h2>{{ building.name }}</h2>
+{% if page_obj %}
     <div class="row">
-        <!-- Левая колонка: Характеристики здания -->
-        <div class="col-md-3 mb-4">
-            <h2>{{ building.name }}</h2>
-            <div class="card">
-                <div class="card-body">
-                    <p><strong>Адрес:</strong> {{ building.address }}</p>
-                    <p><strong>Министерство:</strong> {{ building.ministry|default:"Не указано" }}</p>
-                    <p><strong>Регион:</strong> {{ building.region|default:"Не указано" }}</p>
-                    <p><strong>Район:</strong> {{ building.district|default:"Не указано" }}</p>
-                    <p><strong>Контакты:</strong> {{ building.contacts|default:"Не указано" }}</p>
-                    <a href="{% url 'building_edit' building.id %}" class="btn btn-primary btn-block">Редактировать</a>
+        {% for camera in page_obj %}
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <img src="{% url 'stream_camera' camera.id %}" class="card-img-top" style="object-fit: contain;" alt="{{ camera.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ camera.name }}</h5>
+                        <a href="#" class="btn btn-primary"><i class="bi bi-arrows-fullscreen"></i> Полноэкранный режим</a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <!-- Правая колонка: Камеры -->
-        <div class="col-md-9">
-            {% if page_obj %}
-                <div class="row camera-list">
-                    {% for camera in page_obj %}
-                        <div class="col-md-6 mb-3">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ camera.name }}</h5>
-                                    {% if camera.is_active %}
-                                        <div class="camera-stream position-relative">
-                                            <img src="{% url 'stream_camera' camera.id %}" class="img-fluid camera-image" alt="{{ camera.name }} stream">
-                                            <button class="btn btn-sm btn-secondary fullscreen-btn" data-camera-id="{{ camera.id }}" title="Полноэкранный режим">
-                                                <i class="bi bi-arrows-fullscreen"></i>
-                                            </button>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-                <!-- Пагинация -->
-                {% if page_obj.has_other_pages %}
-                    <nav aria-label="Camera pagination">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Предыдущая</a>
-                                </li>
-                            {% else %}
-                                <li class="page-item disabled">
-                                    <span class="page-link">Предыдущая</span>
-                                </li>
-                            {% endif %}
-                            {% for num in page_obj.paginator.page_range %}
-                                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                                </li>
-                            {% endfor %}
-                            {% if page_obj.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Следующая</a>
-                                </li>
-                            {% else %}
-                                <li class="page-item disabled">
-                                    <span class="page-link">Следующая</span>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
+        {% endfor %}
+    </div>
+    {% if page_obj.has_previous or page_obj.has_next %}
+        <nav aria-label="Пагинация камер">
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Предыдущая</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Предыдущая</span>
+                    </li>
                 {% endif %}
-            {% else %}
-                <p>Камеры отсутствуют.</p>
-            {% endif %}
-        </div>
-    </div>
-</div>
-<!-- Модальное окно для полноэкранного просмотра -->
-<div class="modal fade" id="fullscreenModal" tabindex="-1" aria-labelledby="fullscreenModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="fullscreenModalLabel">Полноэкранный просмотр камеры</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                <img id="fullscreenStream" src="" class="img-fluid" alt="Fullscreen stream">
-            </div>
-        </div>
-    </div>
-</div>
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Следующая</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Следующая</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% else %}
+    <p>Камеры отсутствуют.</p>
+{% endif %}
+{% if user.is_authenticated and user.groups.filter(name='Administrators').exists %}
+    <a href="{% url 'building_edit' building.id %}" class="btn btn-primary mt-3">Редактировать здание</a>
+{% endif %}
 {% endblock %}

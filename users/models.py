@@ -1,3 +1,3 @@
+#users/models.py
 from django.db import models
-
-# Create your models here.
+# Модель User используется из django.contrib.auth.models

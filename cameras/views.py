@@ -1,13 +1,60 @@
 # Cameras/views.py
-from django.shortcuts import render, redirect, get_object_or_404
-from .forms import BuildingForm, CameraForm
-from .models import Building, Camera, Region, District, Ministry
-from django.http import StreamingHttpResponse, JsonResponse
+from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import user_passes_test
+from django.http import StreamingHttpResponse, JsonResponse, HttpResponse
+from .models import Building, Camera, Region, District
+from .forms import BuildingForm
 import cv2
+import urllib.request
+import numpy as np
 
 
-def create_building(request):
+# Проверка, что пользователь в группе Administrators
+def is_administrator(user):
+    return user.is_authenticated and user.groups.filter(name='Administrators').exists()
+
+
+def building_list(request):
+    districts = District.objects.all()
+    district_data = []
+    for district in districts:
+        buildings = Building.objects.filter(district=district)
+        building_count = buildings.count()
+        if building_count > 0:
+            district_data.append({
+                'district': district,
+                'building_count': building_count,
+                'buildings': [
+                    {'building': b, 'camera_count': Camera.objects.filter(building=b).count()}
+                    for b in buildings
+                ]
+            })
+    no_district_buildings = Building.objects.filter(district__isnull=True)
+    no_district_count = no_district_buildings.count()
+    if no_district_count > 0:
+        district_data.append({
+            'district': None,
+            'building_count': no_district_count,
+            'buildings': [
+                {'building': b, 'camera_count': Camera.objects.filter(building=b).count()}
+                for b in no_district_buildings
+            ]
+        })
+    return render(request, 'cameras/building_list.html', {'district_data': district_data})
+
+
+def building_detail(request, pk):
+    building = get_object_or_404(Building, pk=pk)
+    cameras = Camera.objects.filter(building=building)
+    paginator = Paginator(cameras, 4)  # 4 камеры на страницу
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'cameras/building_detail.html', {'building': building, 'page_obj': page_obj})
+
+
+@user_passes_test(is_administrator, login_url='/users/login/')
+def building_create(request):
     if request.method == 'POST':
         form = BuildingForm(request.POST)
         if form.is_valid():
@@ -18,143 +65,56 @@ def create_building(request):
     return render(request, 'cameras/building_form.html', {'form': form})
 
 
-def building_list(request):
-    # Получить районы с хотя бы одним зданием, отсортированные по имени
-    districts = District.objects.filter(buildings__isnull=False).distinct().order_by('name')
-    district_data = []
-
-    for district in districts:
-        buildings = Building.objects.filter(district=district).order_by('name')
-        building_count = buildings.count()
-        buildings_with_cameras = [
-            {
-                'building': building,
-                'camera_count': building.cameras.count()
-            }
-            for building in buildings
-        ]
-        district_data.append({
-            'district': district,
-            'building_count': building_count,
-            'buildings': buildings_with_cameras
-        })
-
-    # Добавить здания без района
-    no_district_buildings = Building.objects.filter(district__isnull=True).order_by('name')
-    if no_district_buildings.exists():
-        no_district_buildings_with_cameras = [
-            {
-                'building': building,
-                'camera_count': building.cameras.count()
-            }
-            for building in no_district_buildings
-        ]
-        district_data.append({
-            'district': None,
-            'building_count': no_district_buildings.count(),
-            'buildings': no_district_buildings_with_cameras
-        })
-
-    return render(request, 'cameras/building_list.html', {
-        'district_data': district_data
-    })
-
-
-def building_detail(request, building_id):
-    building = get_object_or_404(Building, id=building_id)
-    cameras = building.cameras.all()
-    paginator = Paginator(cameras, 4)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return render(request, 'cameras/building_detail.html', {
-        'building': building,
-        'page_obj': page_obj,
-    })
-
-
-def building_edit(request, building_id):
-    building = get_object_or_404(Building, id=building_id)
-    cameras = building.cameras.all()
-
+@user_passes_test(is_administrator, login_url='/users/login/')
+def building_edit(request, pk):
+    building = get_object_or_404(Building, pk=pk)
     if request.method == 'POST':
-        if 'save_building' in request.POST:
-            building_form = BuildingForm(request.POST, instance=building)
-            if building_form.is_valid():
-                building_form.save()
-                return redirect('building_detail', building_id=building_id)
-        elif 'add_camera' in request.POST:
-            new_camera_form = CameraForm(request.POST)
-            if new_camera_form.is_valid():
-                camera = new_camera_form.save(commit=False)
-                camera.building = building
-                camera.save()
-                return redirect('building_edit', building_id=building_id)
-        elif any(key.startswith('save_camera_') for key in request.POST):
-            for camera in cameras:
-                if f'save_camera_{camera.id}' in request.POST:
-                    camera_form = CameraForm(request.POST, instance=camera)
-                    if camera_form.is_valid():
-                        camera_form.save()
-                    return redirect('building_edit', building_id=building_id)
-        elif any(key.startswith('delete_camera_') for key in request.POST):
-            for camera in cameras:
-                if f'delete_camera_{camera.id}' in request.POST:
-                    camera.delete()
-                    return redirect('building_edit', building_id=building_id)
-
-    building_form = BuildingForm(instance=building)
-    camera_forms = [CameraForm(instance=camera) for camera in cameras]
-    new_camera_form = CameraForm()
-
-    return render(request, 'cameras/building_edit.html', {
-        'building': building,
-        'building_form': building_form,
-        'camera_forms': camera_forms,
-        'new_camera_form': new_camera_form,
-    })
+        form = BuildingForm(request.POST, instance=building)
+        if form.is_valid():
+            form.save()
+            return redirect('building_detail', pk=building.pk)
+    else:
+        form = BuildingForm(instance=building)
+    return render(request, 'cameras/building_form.html', {'form': form})
 
 
+@user_passes_test(is_administrator, login_url='/users/login/')
 def delete_camera(request, camera_id):
     camera = get_object_or_404(Camera, id=camera_id)
-    building_id = camera.building.id if camera.building else None
+    building_id = camera.building.id
     camera.delete()
-    if building_id:
-        return redirect('building_detail', building_id=building_id)
-    return redirect('building_list')
+    return redirect('building_detail', pk=building_id)
 
 
 def stream_camera(request, camera_id):
     camera = get_object_or_404(Camera, id=camera_id)
-    cap = cv2.VideoCapture(camera.rtsp_url)
+    if not camera.is_active:
+        return HttpResponse("Камера неактивна", status=403)
 
-    def generate():
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            ret, buffer = cv2.imencode('.jpg', frame)
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+    def generate_frames():
+        stream_url = camera.rtsp_url
+        try:
+            cap = cv2.VideoCapture(stream_url)
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                _, buffer = cv2.imencode('.jpg', frame)
+                frame = buffer.tobytes()
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            cap.release()
+        except Exception as e:
+            print(f"Ошибка потока: {e}")
 
-    return StreamingHttpResponse(generate(), content_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingHttpResponse(generate_frames(), content_type='multipart/x-mixed-replace; boundary=frame')
+
+
+def get_districts(request, region_id):
+    districts = District.objects.filter(region_id=region_id).values('id', 'name')
+    return JsonResponse(list(districts), safe=False)
 
 
 def region_list(request):
     regions = Region.objects.all().values('id', 'name')
     return JsonResponse(list(regions), safe=False)
-
-
-def district_list(request, region_id=None):
-    if region_id:
-        districts = District.objects.filter(region_id=region_id).values('id', 'name')
-    else:
-        districts = District.objects.all().values('id', 'name')
-    return JsonResponse(list(districts), safe=False)
-
-
-def users(request):
-    return render(request, 'users/users.html')
-
-
-def reports(request):
-    return render(request, 'reports/reports.html')
