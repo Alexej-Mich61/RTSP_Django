@@ -1,4 +1,4 @@
-# reports/models.py
+#reports/models.py
 from django.db import models
 from cameras.models import Building
 

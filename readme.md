@@ -6,5 +6,6 @@
 #### pip freeze > requirements.txt
 #### Проверка структуры директорий:
 #### dir "C:\PYTHON PROJECT\RTSP_Django\*" -Directory
+#### показать содержимое папки на винде: dir "C:\PYTHON PROJECT\RTSP_Django\cameras"
 #### очистить кэш:
 #### dir "C:\PYTHON PROJECT\RTSP_Django\*" -Recurse -Include __pycache__ | Remove-Item -Recurse -Force

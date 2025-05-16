@@ -1,4 +1,4 @@
-# Cameras/views.py
+# cameras/views.py
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import user_passes_test
@@ -6,6 +6,7 @@ from django.http import StreamingHttpResponse, JsonResponse, HttpResponse
 from .models import Building, Camera, Region, District
 from .forms import BuildingForm
 import cv2
+from cameras.utils import is_administrator
 import urllib.request
 import numpy as np
 
@@ -41,16 +42,25 @@ def building_list(request):
                 for b in no_district_buildings
             ]
         })
-    return render(request, 'cameras/building_list.html', {'district_data': district_data})
+    # Добавляем флаг is_administrator в контекст
+    is_administrator = request.user.is_authenticated and request.user.groups.filter(name='Administrators').exists()
+    return render(request, 'cameras/building_list.html', {
+        'district_data': district_data,
+        'is_administrator': is_administrator
+    })
 
 
 def building_detail(request, pk):
     building = get_object_or_404(Building, pk=pk)
     cameras = Camera.objects.filter(building=building)
-    paginator = Paginator(cameras, 4)  # 4 камеры на страницу
+    paginator = Paginator(cameras, 4)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'cameras/building_detail.html', {'building': building, 'page_obj': page_obj})
+    return render(request, 'cameras/building_detail.html', {
+        'building': building,
+        'page_obj': page_obj,
+        'is_administrator': is_administrator(request.user)
+    })
 
 
 @user_passes_test(is_administrator, login_url='/users/login/')

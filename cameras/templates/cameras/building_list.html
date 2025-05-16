@@ -1,3 +1,4 @@
+<!--cameras/templates/cameras/building_list.html-->
 {% extends 'base.html' %}
 {% block title %}Список зданий{% endblock %}
 {% block content %}
@@ -27,7 +28,7 @@
 {% else %}
     <p>Здания отсутствуют.</p>
 {% endif %}
-{% if user.is_authenticated and 'Administrators' in user.groups.all|map:'name' %}
+{% if user.is_authenticated and is_administrator %}
     <a href="{% url 'building_create' %}" class="btn btn-primary mt-3">Добавить здание</a>
 {% endif %}
 {% endblock %}

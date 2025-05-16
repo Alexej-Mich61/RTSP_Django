@@ -1,3 +1,4 @@
+//static/js/script.js
 console.log('script.js loaded'); // Диагностика загрузки
 
 $(document).ready(function() {
@@ -5,6 +6,7 @@ $(document).ready(function() {
 
     // Фильтрация районов
     $('#id_region').change(function() {
+        console.log('Region changed'); // Отладка
         var regionId = $(this).val();
         if (regionId) {
             $.get('/cameras/api/districts/' + regionId + '/', function(data) {
@@ -14,6 +16,8 @@ $(document).ready(function() {
                 $.each(data, function(index, district) {
                     districtSelect.append('<option value="' + district.id + '">' + district.name + '</option>');
                 });
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                console.error('Error loading districts:', textStatus, errorThrown); // Отладка ошибок AJAX
             });
         } else {
             $('#id_district').empty().append('<option value="">Выберите район</option>');
@@ -21,7 +25,8 @@ $(document).ready(function() {
     });
 
     // Полноэкранный режим для камер
-    $(document).on('click', '.fullscreen-btn', function() {
+    $(document).on('click', '.fullscreen-btn', function(e) {
+        e.preventDefault(); // Предотвращаем действие по умолчанию
         console.log('Fullscreen button clicked'); // Отладка
         var cameraId = $(this).data('camera-id');
         console.log('Camera ID:', cameraId); // Отладка
