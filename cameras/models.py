@@ -1,6 +1,6 @@
 #cameras/models.py
 from django.db import models
-
+from django.contrib.auth.models import User
 
 class Ministry(models.Model):
     name = models.CharField(max_length=200, unique=True, verbose_name="Название министерства")
@@ -109,3 +109,36 @@ class Camera(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class UserBuildingPermission(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="building_permissions", verbose_name="Пользователь")
+    building = models.ForeignKey(Building, on_delete=models.CASCADE, related_name="user_permissions", verbose_name="Здание")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+
+    class Meta:
+        verbose_name = "Разрешение на здание"
+        verbose_name_plural = "Разрешения на здания"
+        unique_together = ['user', 'building']  # Один пользователь не может иметь дублирующиеся разрешения на здание
+        indexes = [
+            models.Index(fields=['user', 'building']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.building.name}"
+
+class UserCameraPermission(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="camera_permissions", verbose_name="Пользователь")
+    camera = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name="user_permissions", verbose_name="Камера")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+
+    class Meta:
+        verbose_name = "Разрешение на камеру"
+        verbose_name_plural = "Разрешения на камеры"
+        unique_together = ['user', 'camera']  # Один пользователь не может иметь дублирующиеся разрешения на камеру
+        indexes = [
+            models.Index(fields=['user', 'camera']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.camera.name}"

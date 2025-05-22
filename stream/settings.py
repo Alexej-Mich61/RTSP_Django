@@ -1,5 +1,4 @@
 #stream/settings.py
-import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,6 +19,7 @@ INSTALLED_APPS = [
     'cameras',
     'users',
     'reports',
+    'admin_auto_filters',
 ]
 
 MIDDLEWARE = [
@@ -52,10 +52,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'stream.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -67,10 +63,6 @@ DATABASES = {
         'CONN_MAX_AGE': 600,
     }
 }
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {

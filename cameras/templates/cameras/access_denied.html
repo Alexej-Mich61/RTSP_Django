@@ -1,0 +1,8 @@
+<!--cameras/templates/cameras/access_denied.html-->
+{% extends 'base.html' %}
+{% block title %}Доступ запрещён{% endblock %}
+{% block content %}
+<h2>Доступ запрещён</h2>
+<p>У вас нет прав для просмотра этого здания.</p>
+<a href="{% url 'building_list' %}" class="btn btn-primary">Вернуться к списку зданий</a>
+{% endblock %}
