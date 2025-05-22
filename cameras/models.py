@@ -1,13 +1,6 @@
-# cameras/models.py
+#cameras/models.py
 from django.db import models
-from django.core.exceptions import ValidationError
-import re
 
-def validate_rtsp_url(value):
-    """Валидатор для RTSP URL."""
-    rtsp_pattern = r'^rtsp://[^\s/$.?#].*$'
-    if not re.match(rtsp_pattern, value):
-        raise ValidationError('Введите корректный RTSP URL, начинающийся с rtsp://')
 
 class Ministry(models.Model):
     name = models.CharField(max_length=200, unique=True, verbose_name="Название министерства")
@@ -16,6 +9,9 @@ class Ministry(models.Model):
     class Meta:
         verbose_name = "Министерство"
         verbose_name_plural = "Министерства"
+        indexes = [
+            models.Index(fields=['name']),  # Индекс для поиска по имени
+        ]
 
     def __str__(self):
         return self.name
@@ -26,11 +22,15 @@ class Region(models.Model):
     class Meta:
         verbose_name = "Регион"
         verbose_name_plural = "Регионы"
+        indexes = [
+            models.Index(fields=['name']),  # Индекс для поиска по имени
+        ]
 
     def __str__(self):
         return self.name
 
 class District(models.Model):
+    # Удалено: objects = None
     name = models.CharField(max_length=100, verbose_name="Название района")
     region = models.ForeignKey(
         Region,
@@ -42,7 +42,12 @@ class District(models.Model):
     class Meta:
         verbose_name = "Район"
         verbose_name_plural = "Районы"
-        unique_together = ['name', 'region']
+        constraints = [
+            models.UniqueConstraint(fields=['name', 'region'], name='unique_district_name_region')
+        ]
+        indexes = [
+            models.Index(fields=['name', 'region']),  # Индекс для фильтрации
+        ]
 
     def __str__(self):
         return f"{self.name} ({self.region.name})"
@@ -71,37 +76,36 @@ class Building(models.Model):
         related_name="buildings",
         verbose_name="Район"
     )
-    contacts = models.TextField(blank=True, null=True, verbose_name="Контакты")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    contacts = models.TextField(blank=True, verbose_name="Контакты")  # Убрано null=True
+    created_at = models.DateTimeField(auto_now_add=True, editable=False, verbose_name="Дата создания")
 
     class Meta:
         verbose_name = "Здание"
         verbose_name_plural = "Здания"
+        indexes = [
+            models.Index(fields=['name']),  # Индекс для поиска по имени
+            models.Index(fields=['region', 'district']),  # Индекс для фильтрации
+        ]
 
     def __str__(self):
         return self.name
 
 class Camera(models.Model):
     name = models.CharField(max_length=100, verbose_name="Название камеры")
-    rtsp_url = models.CharField(
-        max_length=255,
-        validators=[validate_rtsp_url],
-        verbose_name="RTSP URL"
-    )
+    hls_path = models.CharField(max_length=50, verbose_name="HLS путь", help_text="Например, camera_1")
     building = models.ForeignKey(
-        Building,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="cameras",
-        verbose_name="Здание"
+        Building, on_delete=models.SET_NULL, null=True, blank=True, related_name="cameras", verbose_name="Здание"
     )
     is_active = models.BooleanField(default=True, verbose_name="Активна")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    created_at = models.DateTimeField(auto_now_add=True, editable=False, verbose_name="Дата создания")
 
     class Meta:
         verbose_name = "Камера"
         verbose_name_plural = "Камеры"
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['building', 'is_active']),
+        ]
 
     def __str__(self):
         return self.name

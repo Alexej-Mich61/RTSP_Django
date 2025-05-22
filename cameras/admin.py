@@ -1,4 +1,4 @@
-# cameras/admin.py
+#cameras/admin.py
 from django.contrib import admin
 from .models import Ministry, Region, District, Building, Camera
 
@@ -21,7 +21,7 @@ class DistrictAdmin(admin.ModelAdmin):
 class CameraInline(admin.TabularInline):
     model = Camera
     extra = 1
-    fields = ['name', 'rtsp_url', 'is_active']
+    fields = ['name', 'hls_path', 'is_active']  # Замени rtsp_url на hls_path
 
 @admin.register(Building)
 class BuildingAdmin(admin.ModelAdmin):
@@ -32,6 +32,6 @@ class BuildingAdmin(admin.ModelAdmin):
 
 @admin.register(Camera)
 class CameraAdmin(admin.ModelAdmin):
-    list_display = ['name', 'building', 'rtsp_url', 'is_active', 'created_at']
+    list_display = ['name', 'building', 'hls_path', 'is_active', 'created_at']  # Замени rtsp_url на hls_path
     list_filter = ['building', 'is_active']
-    search_fields = ['name', 'rtsp_url']
+    search_fields = ['name', 'hls_path']

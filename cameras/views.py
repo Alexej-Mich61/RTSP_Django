@@ -1,20 +1,19 @@
-# cameras/views.py
-from django.shortcuts import render, get_object_or_404, redirect
-from django.core.paginator import Paginator
+#cameras/views.py
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import user_passes_test
-from django.http import StreamingHttpResponse, JsonResponse, HttpResponse
+from django.core.paginator import Paginator
 from .models import Building, Camera, Region, District
 from .forms import BuildingForm
-import cv2
-from cameras.utils import is_administrator
-import urllib.request
-import numpy as np
+from .utils import is_administrator
 
-
-# Проверка, что пользователь в группе Administrators
-def is_administrator(user):
-    return user.is_authenticated and user.groups.filter(name='Administrators').exists()
-
+def stream_camera(request, camera_id):
+    """Возвращает HLS URL для камеры."""
+    camera = get_object_or_404(Camera, id=camera_id)
+    if not camera.is_active:
+        return JsonResponse({'error': 'Камера неактивна'}, status=403)
+    hls_url = f"http://localhost/hls/{camera.hls_path}/stream.m3u8"
+    return JsonResponse({'hls_url': hls_url})
 
 def building_list(request):
     districts = District.objects.all()
@@ -42,17 +41,14 @@ def building_list(request):
                 for b in no_district_buildings
             ]
         })
-    # Добавляем флаг is_administrator в контекст
-    is_administrator = request.user.is_authenticated and request.user.groups.filter(name='Administrators').exists()
     return render(request, 'cameras/building_list.html', {
         'district_data': district_data,
-        'is_administrator': is_administrator
+        'is_administrator': is_administrator(request.user)
     })
-
 
 def building_detail(request, pk):
     building = get_object_or_404(Building, pk=pk)
-    cameras = Camera.objects.filter(building=building)
+    cameras = Camera.objects.filter(building=building).order_by('id')
     paginator = Paginator(cameras, 4)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -61,7 +57,6 @@ def building_detail(request, pk):
         'page_obj': page_obj,
         'is_administrator': is_administrator(request.user)
     })
-
 
 @user_passes_test(is_administrator, login_url='/users/login/')
 def building_create(request):
@@ -73,7 +68,6 @@ def building_create(request):
     else:
         form = BuildingForm()
     return render(request, 'cameras/building_form.html', {'form': form})
-
 
 @user_passes_test(is_administrator, login_url='/users/login/')
 def building_edit(request, pk):
@@ -87,7 +81,6 @@ def building_edit(request, pk):
         form = BuildingForm(instance=building)
     return render(request, 'cameras/building_form.html', {'form': form})
 
-
 @user_passes_test(is_administrator, login_url='/users/login/')
 def delete_camera(request, camera_id):
     camera = get_object_or_404(Camera, id=camera_id)
@@ -95,36 +88,11 @@ def delete_camera(request, camera_id):
     camera.delete()
     return redirect('building_detail', pk=building_id)
 
-
-def stream_camera(request, camera_id):
-    camera = get_object_or_404(Camera, id=camera_id)
-    if not camera.is_active:
-        return HttpResponse("Камера неактивна", status=403)
-
-    def generate_frames():
-        stream_url = camera.rtsp_url
-        try:
-            cap = cv2.VideoCapture(stream_url)
-            while cap.isOpened():
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                _, buffer = cv2.imencode('.jpg', frame)
-                frame = buffer.tobytes()
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-            cap.release()
-        except Exception as e:
-            print(f"Ошибка потока: {e}")
-
-    return StreamingHttpResponse(generate_frames(), content_type='multipart/x-mixed-replace; boundary=frame')
-
-
 def get_districts(request, region_id):
     districts = District.objects.filter(region_id=region_id).values('id', 'name')
     return JsonResponse(list(districts), safe=False)
 
-
 def region_list(request):
     regions = Region.objects.all().values('id', 'name')
     return JsonResponse(list(regions), safe=False)
+

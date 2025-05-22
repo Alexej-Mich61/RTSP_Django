@@ -1,49 +1,95 @@
 //static/js/script.js
-console.log('script.js loaded'); // Диагностика загрузки
-
 $(document).ready(function() {
-    console.log('jQuery ready'); // Диагностика jQuery
+    console.log('script.js loaded');
 
-    // Фильтрация районов
-    $('#id_region').change(function() {
-        console.log('Region changed'); // Отладка
-        var regionId = $(this).val();
-        if (regionId) {
-            $.get('/cameras/api/districts/' + regionId + '/', function(data) {
-                var districtSelect = $('#id_district');
-                districtSelect.empty();
-                districtSelect.append('<option value="">Выберите район</option>');
-                $.each(data, function(index, district) {
-                    districtSelect.append('<option value="' + district.id + '">' + district.name + '</option>');
+    function setupHlsPlayer(videoElement, hlsUrl) {
+        console.log(`Setting up HLS for camera ${videoElement.dataset.cameraId} with URL: ${hlsUrl}`);
+        if (Hls.isSupported()) {
+            const hls = new Hls({
+                enableWorker: true,
+                lowLatencyMode: true,
+                backBufferLength: 90,
+                maxBufferLength: 30,
+                maxMaxBufferLength: 60,
+                maxBufferSize: 60 * 1000 * 1000,
+                maxFragLookUpTolerance: 0.2,
+                liveSyncDurationCount: 3,
+                liveMaxLatencyDurationCount: 10,
+                debug: true
+            });
+
+            hls.loadSource(hlsUrl);
+            hls.attachMedia(videoElement);
+
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                console.log('HLS manifest parsed, playing video');
+                videoElement.play().catch(function(error) {
+                    console.error('Play error:', error);
                 });
-            }).fail(function(jqXHR, textStatus, errorThrown) {
-                console.error('Error loading districts:', textStatus, errorThrown); // Отладка ошибок AJAX
+            });
+
+            hls.on(Hls.Events.ERROR, function(event, data) {
+                console.error('HLS error:', data);
+                if (data.fatal) {
+                    switch(data.type) {
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            console.error('Fatal network error, attempting to recover...');
+                            hls.startLoad();
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            console.error('Fatal media error, attempting to recover...');
+                            hls.recoverMediaError();
+                            break;
+                        default:
+                            console.error('Unrecoverable error, destroying HLS instance');
+                            hls.destroy();
+                            videoElement.poster = '/static/images/no-stream.jpg';
+                            break;
+                    }
+                }
+            });
+        } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+            videoElement.src = hlsUrl;
+            videoElement.addEventListener('loadedmetadata', function() {
+                videoElement.play().catch(function(error) {
+                    console.error('Play error:', error);
+                });
             });
         } else {
-            $('#id_district').empty().append('<option value="">Выберите район</option>');
+            console.error('HLS not supported and native HLS playback not available');
+            videoElement.poster = '/static/images/no-stream.jpg';
         }
+    }
+
+    $('.video-player').each(function() {
+        const videoElement = this;
+        const hlsUrl = videoElement.dataset.hlsUrl;
+        setupHlsPlayer(videoElement, hlsUrl);
     });
 
-    // Полноэкранный режим для камер
     $(document).on('click', '.fullscreen-btn', function(e) {
-        e.preventDefault(); // Предотвращаем действие по умолчанию
-        console.log('Fullscreen button clicked'); // Отладка
-        var cameraId = $(this).data('camera-id');
-        console.log('Camera ID:', cameraId); // Отладка
-        var streamUrl = '/cameras/cameras/' + cameraId + '/stream/';
-        console.log('Stream URL:', streamUrl); // Отладка
-        $('#fullscreenStream').attr('src', streamUrl);
-        try {
-            $('#fullscreenModal').modal('show');
-            console.log('Modal should be shown'); // Отладка
-        } catch (e) {
-            console.error('Error opening modal:', e); // Диагностика ошибок Bootstrap
-        }
+        e.preventDefault();
+        const cameraId = $(this).data('camera-id');
+        const hlsUrl = $(`.video-player[data-camera-id="${cameraId}"]`).data('hls-url');
+        const modalVideo = $('#fullscreenModal').find('video')[0];
+        modalVideo.dataset.cameraId = cameraId;
+        setupHlsPlayer(modalVideo, hlsUrl);
+        $('#fullscreenModal').modal('show');
     });
 
-    // Очистка потока при закрытии модального окна
     $('#fullscreenModal').on('hidden.bs.modal', function() {
-        console.log('Modal closed'); // Отладка
-        $('#fullscreenStream').attr('src', '');
+        const modalVideo = $(this).find('video')[0];
+        modalVideo.pause();
+        modalVideo.src = '';
     });
+});
+
+$(document).on('click', '.video-player', function() {
+    if (this.paused) {
+        this.play().catch(function(error) {
+            console.error('Play error:', error);
+        });
+    } else {
+        this.pause();
+    }
 });

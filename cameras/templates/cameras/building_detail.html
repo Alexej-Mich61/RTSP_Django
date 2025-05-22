@@ -1,5 +1,6 @@
 <!--cameras/templates/cameras/building_detail.html-->
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}{{ building.name }}{% endblock %}
 {% block content %}
 <h2>{{ building.name }}</h2>
@@ -8,10 +9,12 @@
         {% for camera in page_obj %}
             <div class="col-md-6 mb-4">
                 <div class="card">
-                    <img src="{% url 'stream_camera' camera.id %}" class="card-img-top" style="object-fit: contain;" alt="{{ camera.name }}">
+                    <video class="card-img-top video-player" controls style="object-fit: contain;" autoplay data-camera-id="{{ camera.id }}" data-hls-url="http://localhost/hls/{{ camera.hls_path }}/stream.m3u8" poster="{% static 'images/no-stream.jpg' %}">
+                        <source src="http://localhost/hls/{{ camera.hls_path }}/stream.m3u8" type="application/vnd.apple.mpegurl">
+                    </video>
                     <div class="card-body">
                         <h5 class="card-title">{{ camera.name }}</h5>
-                        <a href="#" class="btn btn-primary fullscreen-btn" data-camera-id="{{ camera.id }}"><i class="bi bi-arrows-fullscreen"></i> Полноэкранный режим</a>
+                        <a href="#" class="btn btn-primary fullscreen-btn" data-camera-id="{{ camera.id }}">Полноэкранный режим</a>
                     </div>
                 </div>
             </div>
