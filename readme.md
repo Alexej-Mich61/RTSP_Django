@@ -32,6 +32,8 @@ PostgreSQL (рекомендуется, если настроено в settings.
 
 Склонируй проект с GitHub:
 
+
+
 git clone https://github.com/<your-username>/RTSP_Django.git
 cd RTSP_Django
 
