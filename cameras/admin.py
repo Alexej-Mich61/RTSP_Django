@@ -122,5 +122,7 @@ admin.site.unregister(User)
 
 # Регистрируем кастомную админку для User
 @admin.register(User)
-class CustomUserAdmin(UserAdmin):
+class CustomUserAdmin(admin.ModelAdmin):
+    list_display = ['username', 'email', 'is_staff']
     search_fields = ['username', 'email']
+    list_filter = ['is_staff', 'is_active']

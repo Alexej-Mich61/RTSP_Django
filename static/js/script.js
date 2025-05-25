@@ -66,22 +66,6 @@ $(document).ready(function() {
         const hlsUrl = videoElement.dataset.hlsUrl;
         setupHlsPlayer(videoElement, hlsUrl);
     });
-
-    $(document).on('click', '.fullscreen-btn', function(e) {
-        e.preventDefault();
-        const cameraId = $(this).data('camera-id');
-        const hlsUrl = $(`.video-player[data-camera-id="${cameraId}"]`).data('hls-url');
-        const modalVideo = $('#fullscreenModal').find('video')[0];
-        modalVideo.dataset.cameraId = cameraId;
-        setupHlsPlayer(modalVideo, hlsUrl);
-        $('#fullscreenModal').modal('show');
-    });
-
-    $('#fullscreenModal').on('hidden.bs.modal', function() {
-        const modalVideo = $(this).find('video')[0];
-        modalVideo.pause();
-        modalVideo.src = '';
-    });
 });
 
 $(document).on('click', '.video-player', function() {

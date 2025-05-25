@@ -7,7 +7,7 @@ SECRET_KEY = 'django-insecure-+!d4nlqa6u-9(9_7kguu#n7i2e^nepv=xmh5h1sxo@&od+t$^*
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -81,6 +81,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru-ru'
 
+
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
@@ -92,3 +93,8 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Настройки авторизации
+LOGIN_URL = '/users/login/'
+LOGIN_REDIRECT_URL = '/cameras/buildings/'
+LOGOUT_REDIRECT_URL = '/users/login/'

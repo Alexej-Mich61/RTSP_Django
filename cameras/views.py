@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from .models import Building, Camera, Region, District, UserBuildingPermission, UserCameraPermission
 from .forms import BuildingForm
 from .utils import is_administrator
+from django.contrib.auth.decorators import login_required
 
 
 def stream_camera(request, camera_id):
@@ -16,7 +17,7 @@ def stream_camera(request, camera_id):
     hls_url = f"http://localhost/hls/{camera.hls_path}/stream.m3u8"
     return JsonResponse({'hls_url': hls_url})
 
-
+@login_required
 def building_list(request):
     if is_administrator(request.user):
         # Администраторы видят все здания
@@ -80,6 +81,7 @@ def building_list(request):
     })
 
 
+@login_required
 def building_detail(request, pk):
     building = get_object_or_404(Building, pk=pk)
     # Проверка доступа к зданию для Users
@@ -105,7 +107,7 @@ def building_detail(request, pk):
         'is_administrator': is_administrator(request.user)
     })
 
-
+@login_required
 @user_passes_test(is_administrator, login_url='/users/login/')
 def building_create(request):
     if request.method == 'POST':
@@ -117,7 +119,7 @@ def building_create(request):
         form = BuildingForm()
     return render(request, 'cameras/building_form.html', {'form': form})
 
-
+@login_required
 @user_passes_test(is_administrator, login_url='/users/login/')
 def building_edit(request, pk):
     building = get_object_or_404(Building, pk=pk)
@@ -130,7 +132,7 @@ def building_edit(request, pk):
         form = BuildingForm(instance=building)
     return render(request, 'cameras/building_form.html', {'form': form})
 
-
+@login_required
 @user_passes_test(is_administrator, login_url='/users/login/')
 def delete_camera(request, camera_id):
     camera = get_object_or_404(Camera, id=camera_id)

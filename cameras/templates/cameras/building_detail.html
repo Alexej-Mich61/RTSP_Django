@@ -14,7 +14,6 @@
                     </video>
                     <div class="card-body">
                         <h5 class="card-title">{{ camera.name }}</h5>
-                        <a href="#" class="btn btn-primary fullscreen-btn" data-camera-id="{{ camera.id }}">Полноэкранный режим</a>
                     </div>
                 </div>
             </div>
@@ -58,6 +57,36 @@
 {% else %}
     <p>Камеры отсутствуют.</p>
 {% endif %}
+
+<!-- Характеристики здания -->
+<div class="mt-4">
+    <h4>Характеристики здания</h4>
+    <table class="table table-bordered">
+        <tbody>
+            <tr>
+                <th>Адрес</th>
+                <td>{{ building.address|default:"Не указан" }}</td>
+            </tr>
+            <tr>
+                <th>Министерство</th>
+                <td>{{ building.ministry|default:"Не указано" }}</td>
+            </tr>
+            <tr>
+                <th>Регион</th>
+                <td>{{ building.region|default:"Не указан" }}</td>
+            </tr>
+            <tr>
+                <th>Район</th>
+                <td>{{ building.district|default:"Не указан" }}</td>
+            </tr>
+            <tr>
+                <th>Контакты</th>
+                <td>{{ building.contacts|default:"Не указаны" }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
 {% if user.is_authenticated and is_administrator %}
     <a href="{% url 'building_edit' building.id %}" class="btn btn-primary mt-3">Редактировать здание</a>
 {% endif %}
