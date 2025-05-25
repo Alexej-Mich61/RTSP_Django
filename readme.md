@@ -4,6 +4,7 @@
 #### git status
 #### python manage.py collectstatic
 #### pip freeze > requirements.txt
+#### pip list - список установленного
 #### Проверка структуры директорий:
 #### dir "C:\PYTHON PROJECT\RTSP_Django\*" -Directory
 #### показать содержимое папки на винде: dir "C:\PYTHON PROJECT\RTSP_Django\cameras"
