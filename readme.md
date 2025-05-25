@@ -34,7 +34,7 @@ PostgreSQL (рекомендуется, если настроено в settings.
 
 
 
-git clone https://github.com/<your-username>/RTSP_Django.git
+git clone https://github.com/Alexej-Mich61/RTSP_Django.git
 cd RTSP_Django
 
 Замени <your-username> на твой GitHub-username.
