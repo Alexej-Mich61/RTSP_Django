@@ -37,7 +37,6 @@ PostgreSQL (рекомендуется, если настроено в settings.
 git clone https://github.com/Alexej-Mich61/RTSP_Django.git
 cd RTSP_Django
 
-Замени <your-username> на твой GitHub-username.
 
 2. Создание виртуального окружения
 
@@ -126,7 +125,7 @@ Ubuntu: sudo apt install postgresql postgresql-contrib
 Создай базу данных:
 
 psql -U postgres
-CREATE DATABASE rtsp_django;
+CREATE DATABASE rtsp_django_db;
 \q
 
 
@@ -136,7 +135,7 @@ CREATE DATABASE rtsp_django;
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'rtsp_django',
+        'NAME': 'rtsp_django_db',
         'USER': 'your_user',
         'PASSWORD': 'your_password',
         'HOST': 'localhost',
