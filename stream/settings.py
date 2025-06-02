@@ -1,13 +1,22 @@
 #stream/settings.py
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+# Загружаем переменные из файла .env
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-+!d4nlqa6u-9(9_7kguu#n7i2e^nepv=xmh5h1sxo@&od+t$^*'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# Загружаем ALLOWED_HOSTS из .env и преобразуем в список
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+
+# Загружаем CSRF_TRUSTED_ORIGINS из .env и преобразуем в список
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -55,11 +64,11 @@ WSGI_APPLICATION = 'stream.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'rtsp_django_db',
-        'USER': 'postgres',
-        'PASSWORD': '567507Sa',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
         'CONN_MAX_AGE': 600,
     }
 }
@@ -79,10 +88,18 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Настройки хеширования паролей
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.ScryptPasswordHasher',
+]
+
 LANGUAGE_CODE = 'ru-ru'
 
-
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 

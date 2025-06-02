@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 
 
 def stream_camera(request, camera_id):
-    """Возвращает HLS URL для камеры."""
+    """Возвращает HLS URL для камеры.   Проверить!!! Надо или нет"""
     camera = get_object_or_404(Camera, id=camera_id)
     if not camera.is_active:
         return JsonResponse({'error': 'Камера неактивна'}, status=403)

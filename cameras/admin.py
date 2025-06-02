@@ -2,12 +2,12 @@
 from django.contrib import admin
 from django import forms
 from django.contrib.auth.models import User
-from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import Ministry, Region, District, Building, Camera, UserBuildingPermission, UserCameraPermission
 
 class UserBuildingPermissionForm(forms.ModelForm):
     cameras = forms.ModelMultipleChoiceField(
-        queryset=Camera.objects.all(),  # Все камеры по умолчанию
+        queryset=Camera.objects.all(),
         required=False,
         widget=forms.SelectMultiple(attrs={'class': 'form-control'}),
         label="Камеры"
@@ -19,30 +19,25 @@ class UserBuildingPermissionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Устанавливаем начальный queryset для камер
         if self.instance and self.instance.pk and self.instance.building:
-            # Для редактирования: фильтруем камеры по зданию
             self.fields['cameras'].queryset = Camera.objects.filter(building=self.instance.building)
             self.initial['cameras'] = Camera.objects.filter(
                 user_permissions__user=self.instance.user,
                 building=self.instance.building
             )
         elif 'building' in self.data:
-            # При создании: если здание выбрано в POST, фильтруем камеры
             try:
                 building_id = int(self.data.get('building'))
                 self.fields['cameras'].queryset = Camera.objects.filter(building_id=building_id)
             except (ValueError, TypeError):
                 self.fields['cameras'].queryset = Camera.objects.none()
         else:
-            # Если здание не выбрано, показываем пустой список
             self.fields['cameras'].queryset = Camera.objects.none()
 
     def clean(self):
         cleaned_data = super().clean()
         building = cleaned_data.get('building')
         cameras = cleaned_data.get('cameras')
-        # Проверяем, что выбранные камеры принадлежат зданию
         if building and cameras:
             invalid_cameras = cameras.exclude(building=building)
             if invalid_cameras.exists():
@@ -53,7 +48,6 @@ class UserBuildingPermissionForm(forms.ModelForm):
         instance = super().save(commit=False)
         if commit:
             instance.save()
-        # Обрабатываем разрешения на камеры
         if self.cleaned_data['cameras']:
             UserCameraPermission.objects.filter(
                 user=instance.user,
@@ -106,7 +100,6 @@ class UserBuildingCameraPermissionAdmin(admin.ModelAdmin):
     list_display = ['user', 'building', 'created_at']
     list_filter = ['user', 'building']
     search_fields = ['user__username', 'building__name']
-    # autocomplete_fields = ['user', 'building']
 
     def delete_model(self, request, obj):
         UserCameraPermission.objects.filter(user=obj.user, camera__building=obj.building).delete()
@@ -122,7 +115,23 @@ admin.site.unregister(User)
 
 # Регистрируем кастомную админку для User
 @admin.register(User)
-class CustomUserAdmin(admin.ModelAdmin):
+class CustomUserAdmin(BaseUserAdmin):
     list_display = ['username', 'email', 'is_staff']
     search_fields = ['username', 'email']
     list_filter = ['is_staff', 'is_active']
+
+    # Указываем поля для формы редактирования
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Персональная информация', {'fields': ('first_name', 'last_name', 'email')}),
+        ('Разрешения', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Важные даты', {'fields': ('last_login', 'date_joined')}),
+    )
+
+    # Указываем поля для формы добавления
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'email', 'password1', 'password2'),
+        }),
+    )
