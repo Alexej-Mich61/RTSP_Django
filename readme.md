@@ -96,6 +96,13 @@ python manage.py createsuperuser
 
 Следуй инструкциям, чтобы задать имя, email и пароль.
 9. Сбор статических файлов
+Настройка статических файлов
+Убедись, что фавикон находится по пути static/images/favicon/favicon.ico. 
+Собери статические файлы для продакшена:
+
+python manage.py collectstatic
+
+Ответь "yes", если будет запрос на перезапись.
 Собери статические файлы (например, CSS, JS):
 python manage.py collectstatic
 
