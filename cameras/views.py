@@ -3,18 +3,18 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import user_passes_test
 from django.core.paginator import Paginator
+from django.conf import settings  # Импортируем настройки
 from .models import Building, Camera, Region, District, UserBuildingPermission, UserCameraPermission
 from .forms import BuildingForm
 from .utils import is_administrator
 from django.contrib.auth.decorators import login_required
 
-
 def stream_camera(request, camera_id):
-    """Возвращает HLS URL для камеры.   Проверить!!! Надо или нет"""
+    """Возвращает HLS URL для камеры."""
     camera = get_object_or_404(Camera, id=camera_id)
     if not camera.is_active:
         return JsonResponse({'error': 'Камера неактивна'}, status=403)
-    hls_url = f"http://localhost/hls/{camera.hls_path}/stream.m3u8"
+    hls_url = f"{settings.HLS_HOST}/{camera.hls_path}/stream.m3u8"
     return JsonResponse({'hls_url': hls_url})
 
 @login_required
@@ -80,7 +80,6 @@ def building_list(request):
         'is_administrator': is_administrator(request.user)
     })
 
-
 @login_required
 def building_detail(request, pk):
     building = get_object_or_404(Building, pk=pk)
@@ -104,7 +103,8 @@ def building_detail(request, pk):
     return render(request, 'cameras/building_detail.html', {
         'building': building,
         'page_obj': page_obj,
-        'is_administrator': is_administrator(request.user)
+        'is_administrator': is_administrator(request.user),
+        'hls_host': settings.HLS_HOST,  # Передаём HLS_HOST в контекст шаблона
     })
 
 @login_required
@@ -140,11 +140,9 @@ def delete_camera(request, camera_id):
     camera.delete()
     return redirect('building_detail', pk=building_id)
 
-
 def get_districts(request, region_id):
     districts = District.objects.filter(region_id=region_id).values('id', 'name')
     return JsonResponse(list(districts), safe=False)
-
 
 def region_list(request):
     regions = Region.objects.all().values('id', 'name')

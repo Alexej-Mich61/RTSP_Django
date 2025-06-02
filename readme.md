@@ -36,7 +36,7 @@ pip3 install -r requirements.txt
 pip install asgiref==3.8.1 Django==5.2 django-admin-autocomplete-filter==0.7.1 psycopg2==2.9.10 sqlparse==0.5.3 tzdata==2025.2 argon2-cffi==23.1.0 python-dotenv==1.0.1
 
 4. Настройка переменных окружения
-Переименуй файл .env.example в .env в корне проекта и добавь следующие переменные:
+Переименуй файл .env.example в .env в корне проекта и добавь свои реальные значения для переменных:
 # Секретный ключ Django
 SECRET_KEY=your-secret-key
 
@@ -50,6 +50,11 @@ DB_PORT=5432
 ALLOWED_HOSTS=localhost,127.0.0.1
 # Список доверенных источников CSRF (через запятую)
 CSRF_TRUSTED_ORIGINS=...(или убери это)
+# Хост для HLS-потоков
+HLS_HOST=http://localhost/hls
+
+Для продакшен-среды укажи правильный HLS_HOST, 
+соответствующий твоему серверу (например, http://video.ru/hls).
 
 5. Настройка Nginx (для HLS)
 

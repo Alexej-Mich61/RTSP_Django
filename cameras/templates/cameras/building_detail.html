@@ -9,8 +9,8 @@
         {% for camera in page_obj %}
             <div class="col-md-6 mb-4">
                 <div class="card">
-                    <video class="card-img-top video-player" controls style="object-fit: contain;" autoplay data-camera-id="{{ camera.id }}" data-hls-url="http://localhost/hls/{{ camera.hls_path }}/stream.m3u8" poster="{% static 'images/no-stream.jpg' %}">
-                        <source src="http://localhost/hls/{{ camera.hls_path }}/stream.m3u8" type="application/vnd.apple.mpegurl">
+                    <video class="card-img-top video-player" controls style="object-fit: contain;" autoplay data-camera-id="{{ camera.id }}" data-hls-url="{{ hls_host }}/{{ camera.hls_path }}/stream.m3u8" poster="{% static 'images/no-stream.jpg' %}">
+                        <source src="{{ hls_host }}/{{ camera.hls_path }}/stream.m3u8" type="application/vnd.apple.mpegurl">
                     </video>
                     <div class="card-body">
                         <h5 class="card-title">{{ camera.name }}</h5>

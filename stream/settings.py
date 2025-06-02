@@ -18,6 +18,9 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 # Загружаем CSRF_TRUSTED_ORIGINS из .env и преобразуем в список
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 
+# Хост для HLS-потоков
+HLS_HOST = os.getenv('HLS_HOST', 'http://localhost/hls')
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
