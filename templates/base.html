@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}RTSP Django{% endblock %}</title>
+    <title>{% block title %}GPER.RU{% endblock %}</title>
     {% load static %}
     <!-- Favicon -->
     <link rel="icon" type="image/ico" href="{% static 'images/favicon/favicon.ico' %}">
@@ -18,24 +18,22 @@
     <!-- Подключаем свои стили -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <!-- Подключаем Bootstrap js-->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
     <!-- Подключаем свой js -->
     <script src="{% static 'js/script.js' %}"></script>
-
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'building_list' %}">RTSP Django</a>
+            <a class="navbar-brand" href="{% url 'building_list' %}">GPER.RU</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'building_list' %}">Здания</a>
+                        <a class="nav-link" href="{% url 'building_list' %}">Объекты</a>
                     </li>
                     {% if user.is_authenticated and user.groups.all.0.name == 'Administrators' %}
                         <li class="nav-item">

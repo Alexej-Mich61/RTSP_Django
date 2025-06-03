@@ -3,7 +3,6 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-# Загружаем переменные из файла .env
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -12,14 +11,11 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 DEBUG = True
 
-# Загружаем ALLOWED_HOSTS из .env и преобразуем в список
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
-# Загружаем CSRF_TRUSTED_ORIGINS из .env и преобразуем в список
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 
-# Хост для HLS-потоков
-HLS_HOST = os.getenv('HLS_HOST', 'http://localhost/hls')
+HLS_HOST = os.getenv('HLS_HOST', 'http://127.0.0.1')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -91,7 +87,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Настройки хеширования паролей
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.Argon2PasswordHasher',
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
@@ -99,6 +94,42 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
     'django.contrib.auth.hashers.ScryptPasswordHasher',
 ]
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs/camera.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'cameras': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',  # Изменено на DEBUG
+            'propagate': True,
+        },
+        '': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
 
 LANGUAGE_CODE = 'ru-ru'
 
@@ -109,12 +140,11 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [BASE_DIR / "static",]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Настройки авторизации
 LOGIN_URL = '/users/login/'
 LOGIN_REDIRECT_URL = '/cameras/buildings/'
 LOGOUT_REDIRECT_URL = '/users/login/'

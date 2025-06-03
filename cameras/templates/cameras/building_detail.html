@@ -9,9 +9,7 @@
         {% for camera in page_obj %}
             <div class="col-md-6 mb-4">
                 <div class="card">
-                    <video class="card-img-top video-player" controls style="object-fit: contain;" autoplay data-camera-id="{{ camera.id }}" data-hls-url="{{ hls_host }}/{{ camera.hls_path }}/stream.m3u8" poster="{% static 'images/no-stream.jpg' %}">
-                        <source src="{{ hls_host }}/{{ camera.hls_path }}/stream.m3u8" type="application/vnd.apple.mpegurl">
-                    </video>
+                    <video class="card-img-top video-player" controls style="object-fit: contain;" data-camera-id="{{ camera.id }}" poster="{% static 'images/no-stream.jpg' %}"></video>
                     <div class="card-body">
                         <h5 class="card-title">{{ camera.name }}</h5>
                     </div>
@@ -90,4 +88,58 @@
 {% if user.is_authenticated and is_administrator %}
     <a href="{% url 'building_edit' building.id %}" class="btn btn-primary mt-3">Редактировать здание</a>
 {% endif %}
+
+<script src="{% static 'js/hls.min.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (Hls.isSupported()) {
+            const videos = document.querySelectorAll('.video-player');
+            videos.forEach(video => {
+                const cameraId = video.getAttribute('data-camera-id');
+                const username = '{{ request.user.username }}';
+
+                fetch(`/cameras/stream/${cameraId}/`, {  // Убедимся, что маршрут совпадает
+                    method: 'GET',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        console.error(`Ошибка для камеры ${cameraId}: ${data.error}`);
+                        video.insertAdjacentHTML('afterend', `<p class="text-danger">Ошибка: ${data.error}</p>`);
+                    } else {
+                        const hls = new Hls();
+                        hls.loadSource(data.hls_url);
+                        hls.attachMedia(video);
+                        video.onplay = () => logCameraPlay(cameraId, username);
+                    }
+                })
+                .catch(error => {
+                    console.error(`Ошибка запроса для камеры ${cameraId}: ${error}`);
+                    video.insertAdjacentHTML('afterend', `<p class="text-danger">Ошибка: Не удалось загрузить поток</p>`);
+                });
+            });
+        } else {
+            console.warn('HLS не поддерживается в этом браузере');
+        }
+    });
+
+    function logCameraPlay(cameraId, username) {
+        fetch('/cameras/log-camera-play/', {  // Обновлённый маршрут
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ camera_id: cameraId, user: username })
+        });
+    }
+</script>
 {% endblock %}
