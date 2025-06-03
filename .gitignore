@@ -1,7 +1,6 @@
 #.gitignore
 .venv
 .idea
-/venv/
 /staticfiles/
 .env
 logs/
