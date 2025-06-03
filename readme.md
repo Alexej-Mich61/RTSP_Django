@@ -1,143 +1,301 @@
-RTSP_Django
-Проект RTSP_Django — это веб-приложение на Django для управления RTSP-стримами камер, связанными со зданиями. Приложение использует Nginx для генерации HLS-потоков и позволяет просматривать видеопотоки, управлять зданиями, камерами, пользователями и их разрешениями через админ-панель.
+RTSP_Django Project
+Это Django-проект для управления потоками RTSP-камер с использованием HLS для воспроизведения видео. Включает аутентификацию пользователей, управление зданиями и камерами, а также базовые функции для создания отчётов.
+Структура проекта
+
+cameras/: Приложение для управления зданиями и камерами.
+users/: Приложение для аутентификации и управления пользователями.
+reports/: Приложение для создания отчётов (в разработке).
+stream/: Основные настройки проекта и URL-адреса.
+templates/: Базовые шаблоны и шаблоны приложений.
+static/: Статические файлы (CSS, JS, изображения).
+logs/: Папка для файлов логов (не отслеживается Git).
+
 Требования
 
-Python 3.12+
-Git
-Nginx (для генерации HLS-потоков)
-PostgreSQL (рекомендуется, если настроено в settings.py) или SQLite (по умолчанию)
-ОС: Windows, macOS или Linux
+Python 3.12 установлен.
+PostgreSQL установлен и запущен.
+Git установлен.
+FFmpeg установлен (для трансляции RTSP в HLS).
+Nginx установлен (для предоставления HLS-потоков).
+PyCharm (опционально, для Ubuntu).
 
-Установка и развертывание
-1. Клонирование репозитория
-Склонируй проект с GitHub:
-git clone https://github.com/<your-username>/RTSP_Django.git
+Инструкции по установке
+На Windows
+
+Клонирование репозиторияОткрой терминал (PowerShell или Командная строка) и выполни:
+git clone <url-репозитория>
 cd RTSP_Django
 
-Замени <your-username> на твой GitHub-username.
-2. Создание виртуального окружения
-Создай и активируй виртуальное окружение:
-Windows
-python -m venv .venv
-.\.venv\Scripts\activate
 
-macOS/Linux
-python3 -m venv .venv
-source .venv/bin/activate
+Создание необходимых файлов и папок
 
-3. Установка зависимостей
-Установи зависимости из requirements.txt:
-pip install -r requirements.txt
+Создай папку logs в корне проекта:mkdir logs
 
-На Ubuntu:
-pip3 install -r requirements.txt
 
-Если requirements.txt отсутствует, установи вручную:
-pip install asgiref==3.8.1 Django==5.2 django-admin-autocomplete-filter==0.7.1 psycopg2==2.9.10 sqlparse==0.5.3 tzdata==2025.2 argon2-cffi==23.1.0 python-dotenv==1.0.1
+Переименуй .env.example в .env:ren .env.example .env
 
-4. Настройка переменных окружения
-Переименуй файл .env.example в .env в корне проекта и добавь свои реальные значения для переменных:
-# Секретный ключ Django
-SECRET_KEY=your-secret-key
 
-# Настройки базы данных
-DB_NAME=rtsp_django
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
+Открой .env в текстовом редакторе и заполни требуемые значения:SECRET_KEY=ваш-секретный-ключ
+DB_NAME=имя-вашей-базы-данных
+DB_USER=имя-пользователя-базы
+DB_PASSWORD=пароль-пользователя-базы
 DB_HOST=localhost
 DB_PORT=5432
-# Список разрешённых хостов (через запятую)
-ALLOWED_HOSTS=localhost,127.0.0.1
-# Список доверенных источников CSRF (через запятую)
-CSRF_TRUSTED_ORIGINS=...(или убери это)
-# Хост для HLS-потоков
-HLS_HOST=http://localhost/hls
+ALLOWED_HOSTS=127.0.0.1,localhost
+CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000
+HLS_HOST=http://127.0.0.1/hls
 
-Для продакшен-среды укажи правильный HLS_HOST, 
-соответствующий твоему серверу (например, http://video.ru/hls).
-
-5. Настройка Nginx (для HLS)
-
-Установи Nginx:
-Windows: Скачай с официального сайта.
-macOS: brew install nginx
-Ubuntu: sudo apt update && sudo apt install nginx
+Сгенерируй SECRET_KEY с помощью безопасного генератора (например, Python-скрипт: python -c "import secrets; print(secrets.token_hex(32))").
 
 
-Настрой конфигурацию Nginx для RTSP → HLS (пример конфига см. в документации Nginx или модуля nginx-rtmp-module).
-Убедись, что RTSP-потоки доступны через .m3u8 файлы.
+Настройка виртуального окружения
 
-6. Настройка базы данных
-SQLite (по умолчанию)
-Если используешь SQLite, дополнительных настроек не требуется. Файл базы данных (db.sqlite3) создастся автоматически.
-PostgreSQL (если настроено)
-
-Установи PostgreSQL:
-Windows: Скачай с официального сайта.
-macOS: brew install postgresql
-Ubuntu: sudo apt install postgresql postgresql-contrib
+Создай виртуальное окружение:python -m venv .venv
 
 
-Создай базу данных:psql -U postgres
-CREATE DATABASE rtsp_django;
-\q
+Активируй виртуальное окружение:.venv\Scripts\activate
 
 
-Укажи настройки базы данных в .env (см. шаг 4).
 
-7. Настройка логов
 
-Создай папку logs в корне проекта для хранения файлов логов. Логи будут записываться в файл logs/camera.log.
+Установка зависимостейУстанови необходимые Python-пакеты:
+pip install -r requirements.txt
 
-8. Применение миграций
-Создай и примени миграции для настройки базы данных:
-python manage.py makemigrations
-python manage.py migrate
 
-9. Создание суперпользователя
-Создай суперпользователя для доступа к админ-панели:
-python manage.py createsuperuser
+Настройка базы данных
 
-Следуй инструкциям, чтобы задать имя, email и пароль.
-10. Сбор статических файлов
-Настройка статических файлов
-Убедись, что фавикон находится по пути static/images/favicon/favicon.ico. 
-Собери статические файлы для продакшена:
+Убедись, что PostgreSQL запущен и создана база данных с именем, указанным в .env.
+Примени миграции:python manage.py migrate
 
-python manage.py collectstatic
 
-Ответь "yes", если будет запрос на перезапись.
-Собери статические файлы (например, CSS, JS):
-python manage.py collectstatic
 
-Ответь "yes", если будет запрос на перезапись.
-11. Запуск сервера
-Запусти сервер разработки:
+
+Сбор статических файловСобери статические файлы для продакшена (опционально для разработки):
+python manage.py collectstatic --noinput
+
+
+Запуск локального сервераЗапусти сервер разработки Django:
 python manage.py runserver
 
-Открой в браузере: http://127.0.0.1:8000/.
-12. Доступ к админ-панели
-Перейди: http://127.0.0.1:8000/admin/. Войди с логином и паролем суперпользователя.
+Открой приложение по адресу http://127.0.0.1:8000.
 
-13. Дополнительные шаги
-Добавление данных
+Настройка FFmpeg и Nginx для HLS-трансляции
 
-Через админку добавь здания (/admin/cameras/building/), камеры (/admin/cameras/camera/) и пользователей с разрешениями.
-Укажи пути к .m3u8 файлам, сгенерированным Nginx, в настройках камер.
+Убедись, что FFmpeg и Nginx установлены.
+Создай папку для HLS-потоков:mkdir C:\nginx\www\hls
 
-14. Тестирование стримов
 
-Убедись, что RTSP-потоки настроены в Nginx и доступны через .m3u8 (проверь через VLC или браузер).
-На странице здания (/cameras/buildings/<id>/) видеопотоки должны отображаться.
+Настрой Nginx для предоставления HLS-потоков (пример nginx.conf):http {
+    server {
+        listen 80;
+        server_name localhost;
 
-Устранение неполадок
+        location /hls {
+            root C:/nginx/www;
+            types {
+                application/vnd.apple.mpegurl m3u8;
+                video/mp2t ts;
+            }
+            add_header Cache-Control no-cache;
+        }
+    }
+}
 
-Ошибка ModuleNotFoundError: No module named 'django':Убедись, что виртуальное окружение активировано, и Django установлен (pip install django).
-HLS не работает:Проверь конфигурацию Nginx и доступность .m3u8 файлов.
-Ошибка базы данных:Проверь настройки в .env и убедись, что PostgreSQL запущен.
-Фавикон не отображается: Убедись, что файл static/images/favicon/favicon.ico существует, и ты выполнил collectstatic для продакшена.
 
-Логи не записываются: Проверь, существует ли папка logs, и что у процесса есть права на запись в файл logs/camera.log.
+Запусти Nginx:nginx
 
-Контакты
-Если возникнут вопросы, создай issue в репозитории или свяжись с разработчиком через GitHub.
+
+Запусти FFmpeg для каждой камеры (пример для camera_1):ffmpeg -i rtsp://ваш-rtsp-url -c:v copy -c:a aac -f hls -hls_time 10 -hls_list_size 5 C:\nginx\www\hls\camera_1\stream.m3u8
+
+Замени rtsp://ваш-rtsp-url на реальный RTSP-URL вашей камеры.
+
+
+
+На Ubuntu
+
+Клонирование репозиторияОткрой терминал и выполни:
+git clone <url-репозитория>
+cd RTSP_Django
+
+
+Создание необходимых файлов и папок
+
+Создай папку logs в корне проекта:mkdir logs
+
+
+Переименуй .env.example в .env:mv .env.example .env
+
+
+Открой .env в текстовом редакторе (например, nano .env) и заполни требуемые значения:SECRET_KEY=ваш-секретный-ключ
+DB_NAME=имя-вашей-базы-данных
+DB_USER=имя-пользователя-базы
+DB_PASSWORD=пароль-пользователя-базы
+DB_HOST=localhost
+DB_PORT=5432
+ALLOWED_HOSTS=127.0.0.1,localhost
+CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000
+HLS_HOST=http://127.0.0.1/hls
+
+Сгенерируй SECRET_KEY с помощью безопасного генератора (например, Python-скрипт: python3 -c "import secrets; print(secrets.token_hex(32))").
+
+
+Настройка виртуального окружения
+
+Создай виртуальное окружение:python3 -m venv .venv
+
+
+Активируй виртуальное окружение:source .venv/bin/activate
+
+
+
+
+Установка зависимостейУстанови необходимые Python-пакеты:
+pip install -r requirements.txt
+
+
+Настройка базы данных
+
+Установи и запусти PostgreSQL:sudo apt update
+sudo apt install postgresql postgresql-contrib
+sudo service postgresql start
+
+
+Создай базу данных с именем, указанным в .env:sudo -u postgres createdb имя-вашей-базы-данных
+
+
+Примени миграции:python manage.py migrate
+
+
+
+
+Сбор статических файловСобери статические файлы для продакшена (опционально для разработки):
+python manage.py collectstatic --noinput
+
+
+Запуск локального сервераЗапусти сервер разработки Django:
+python manage.py runserver
+
+Открой приложение по адресу http://127.0.0.1:8000.
+
+Настройка FFmpeg и Nginx для HLS-трансляции
+
+Установи FFmpeg и Nginx:sudo apt update
+sudo apt install ffmpeg nginx
+
+
+Создай папку для HLS-потоков:sudo mkdir -p /usr/share/nginx/www/hls
+sudo chown -R $(whoami):$(whoami) /usr/share/nginx/www
+
+
+Настрой Nginx для предоставления HLS-потоков (редактируй /etc/nginx/sites-available/default):server {
+    listen 80;
+    server_name localhost;
+
+    location /hls {
+        root /usr/share/nginx/www;
+        types {
+            application/vnd.apple.mpegurl m3u8;
+            video/mp2t ts;
+        }
+        add_header Cache-Control no-cache;
+    }
+}
+
+
+Перезапусти Nginx:sudo systemctl restart nginx
+
+
+Запусти FFmpeg для каждой камеры (пример для camera_1):ffmpeg -i rtsp://ваш-rtsp-url -c:v copy -c:a aac -f hls -hls_time 10 -hls_list_size 5 /usr/share/nginx/www/hls/camera_1/stream.m3u8
+
+Замени rtsp://ваш-rtsp-url на реальный RTSP-URL вашей камеры.
+
+
+
+Обновление проекта
+На Windows
+
+Перейди в директорию проекта:
+cd C:\PYTHON PROJECT\RTSP_Django
+
+
+Выполни git pull для получения последних изменений:
+git pull origin main
+
+
+Активируй виртуальное окружение:
+.venv\Scripts\activate
+
+
+Обнови зависимости, если requirements.txt изменился:
+pip install -r requirements.txt
+
+
+Примени новые миграции базы данных:
+python manage.py migrate
+
+
+Собери статические файлы, если они изменились:
+python manage.py collectstatic --noinput
+
+
+Перезапусти сервер разработки:
+python manage.py runserver
+
+
+
+На Ubuntu (с PyCharm)
+
+Открой проект в PyCharm:
+
+Запусти PyCharm и открой директорию RTSP_Django.
+
+
+Выполни git pull через PyCharm:
+
+Перейди в VCS > Git > Pull в меню.
+Выбери ветку main и нажми Pull.
+
+Или используй терминал в PyCharm:
+
+Открой терминал (в нижней панели PyCharm) и выполни:git pull origin main
+
+
+
+
+Активируй виртуальное окружение в терминале PyCharm:
+source .venv/bin/activate
+
+
+Обнови зависимости, если requirements.txt изменился:
+pip install -r requirements.txt
+
+
+Примени новые миграции базы данных:
+python manage.py migrate
+
+
+Собери статические файлы, если они изменились:
+python manage.py collectstatic --noinput
+
+
+Запусти сервер разработки через PyCharm:
+
+Создай конфигурацию для сервера Django (если ещё не настроена):
+Перейди в Run > Edit Configurations.
+Добавь новую конфигурацию Django server.
+Укажи путь к manage.py и оставь хост/порт по умолчанию (127.0.0.1:8000).
+
+
+Нажми кнопку Run для запуска сервера.
+
+
+
+Дополнительные заметки
+
+Убедись, что FFmpeg и Nginx запущены для работы HLS-трансляции.
+Создай администратора для доступа к админ-панели:python manage.py createsuperuser
+
+
+Проект использует django-admin-autocomplete-filter, который требует правильной конфигурации INSTALLED_APPS (уже настроено в settings.py).
+
+Дата последнего обновления: 03.06.2025, 17:56 (CEST).
