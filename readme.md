@@ -32,10 +32,10 @@ cd RTSP_Django
 Создай папку logs в корне проекта:mkdir logs
 
 
-Переименуй .env.example в .env:ren .env.example .env
+Переименья .env.example в .env:ren .env.example .env
 
 
-Открой .env в текстовом редакторе и заполни требуемые значения:SECRET_KEY=ваш-секретный-ключ
+Открой .env в текстовом редакторе и заполни параметры:SECRET_KEY=ваш-секретный-ключ
 DB_NAME=имя-вашей-базы-данных
 DB_USER=имя-пользователя-базы
 DB_PASSWORD=пароль-пользователя-базы
@@ -45,7 +45,7 @@ ALLOWED_HOSTS=127.0.0.1,localhost
 CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000
 HLS_HOST=http://127.0.0.1/hls
 
-Сгенерируй SECRET_KEY с помощью безопасного генератора (например, Python-скрипт: python -c "import secrets; print(secrets.token_hex(32))").
+Сгенерируй SECRET_KEY с помощью безопасного генератора (например, Python-скрипт python -c "import secrets; print(secrets.token_hex(32))").
 
 
 Настройка виртуального окружения
@@ -64,18 +64,18 @@ pip install -r requirements.txt
 
 Настройка базы данных
 
-Убедись, что PostgreSQL запущен и создана база данных с именем, указанным в .env.
+Убедись, что PostgreSQL запущен, и создай базу данных с именем, указанным в .env.
 Примени миграции:python manage.py migrate
 
 
 
 
 Сбор статических файловСобери статические файлы для продакшена (опционально для разработки):
-python manage.py collectstatic --noinput
+  python manage.py collectstatic --noinput
 
 
 Запуск локального сервераЗапусти сервер разработки Django:
-python manage.py runserver
+  python manage.py runserver
 
 Открой приложение по адресу http://127.0.0.1:8000.
 
@@ -126,7 +126,7 @@ cd RTSP_Django
 Переименуй .env.example в .env:mv .env.example .env
 
 
-Открой .env в текстовом редакторе (например, nano .env) и заполни требуемые значения:SECRET_KEY=ваш-секретный-ключ
+Открой .env в текстовом редакторе (например, nano .env) и заполни:SECRET_KEY=ваш-секретный-ключ
 DB_NAME=имя-вашей-базы-данных
 DB_USER=имя-пользователя-базы
 DB_PASSWORD=пароль-пользователя-базы
@@ -136,7 +136,7 @@ ALLOWED_HOSTS=127.0.0.1,localhost
 CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000
 HLS_HOST=http://127.0.0.1/hls
 
-Сгенерируй SECRET_KEY с помощью безопасного генератора (например, Python-скрипт: python3 -c "import secrets; print(secrets.token_hex(32))").
+Сгенерируй SECRET_KEY с помощью команды python3 -c "import secrets; print(secrets.token_hex(32))".
 
 
 Настройка виртуального окружения
@@ -168,8 +168,8 @@ sudo service postgresql start
 
 
 
-Сбор статических файловСобери статические файлы для продакшена (опционально для разработки):
-python manage.py collectstatic --noinput
+Сбор статических файловСобери статические файлы для продакшен (опционально для разработки):
+  python manage.py collectstatic --noinput
 
 
 Запуск локального сервераЗапусти сервер разработки Django:
@@ -290,6 +290,37 @@ python manage.py collectstatic --noinput
 
 
 
+На Ubuntu (без PyCharm)
+
+Перейди в директорию проекта:
+cd путь-к-директории/RTSP_Django
+
+
+Выполни git pull для получения последних изменений:
+git pull origin main
+
+
+Активируй виртуальное окружение:
+source .venv/bin/activate
+
+
+Обнови зависимости, если requirements.txt изменился:
+pip install -r requirements.txt
+
+
+Примени новые миграции базы данных:
+python manage.py migrate
+
+
+Собери статические файлы, если они изменились:
+python manage.py collectstatic --noinput
+
+
+Перезапусти сервер разработки:
+python manage.py runserver
+
+
+
 Дополнительные заметки
 
 Убедись, что FFmpeg и Nginx запущены для работы HLS-трансляции.
@@ -298,4 +329,4 @@ python manage.py collectstatic --noinput
 
 Проект использует django-admin-autocomplete-filter, который требует правильной конфигурации INSTALLED_APPS (уже настроено в settings.py).
 
-Дата последнего обновления: 03.06.2025, 17:56 (CEST).
+Дата последнего обновления: 03.06.2025, 18:04 (CEST).
