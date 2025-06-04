@@ -30,7 +30,6 @@ class Region(models.Model):
         return self.name
 
 class District(models.Model):
-    # Удалено: objects = None
     name = models.CharField(max_length=100, verbose_name="Название района")
     region = models.ForeignKey(
         Region,
@@ -76,15 +75,15 @@ class Building(models.Model):
         related_name="buildings",
         verbose_name="Район"
     )
-    contacts = models.TextField(blank=True, verbose_name="Контакты")  # Убрано null=True
+    contacts = models.TextField(blank=True, verbose_name="Контакты")
     created_at = models.DateTimeField(auto_now_add=True, editable=False, verbose_name="Дата создания")
 
     class Meta:
         verbose_name = "Здание"
         verbose_name_plural = "Здания"
         indexes = [
-            models.Index(fields=['name']),  # Индекс для поиска по имени
-            models.Index(fields=['region', 'district']),  # Индекс для фильтрации
+            models.Index(fields=['name']),
+            models.Index(fields=['region', 'district']),
         ]
 
     def __str__(self):
@@ -93,6 +92,7 @@ class Building(models.Model):
 class Camera(models.Model):
     name = models.CharField(max_length=100, verbose_name="Название камеры")
     hls_path = models.CharField(max_length=50, verbose_name="HLS путь", help_text="Например, camera_1")
+    rtsp_stream = models.CharField(max_length=255, verbose_name="RTSP поток", blank=True, null=True, help_text="RTSP URL камеры, например, rtsp://username:password@ip_address/stream")
     building = models.ForeignKey(
         Building, on_delete=models.SET_NULL, null=True, blank=True, related_name="cameras", verbose_name="Здание"
     )
@@ -110,7 +110,6 @@ class Camera(models.Model):
     def __str__(self):
         return self.name
 
-
 class UserBuildingPermission(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="building_permissions", verbose_name="Пользователь")
     building = models.ForeignKey(Building, on_delete=models.CASCADE, related_name="user_permissions", verbose_name="Здание")
@@ -119,7 +118,7 @@ class UserBuildingPermission(models.Model):
     class Meta:
         verbose_name = "Разрешение на здание"
         verbose_name_plural = "Разрешения на здания"
-        unique_together = ['user', 'building']  # Один пользователь не может иметь дублирующиеся разрешения на здание
+        unique_together = ['user', 'building']
         indexes = [
             models.Index(fields=['user', 'building']),
         ]
@@ -135,7 +134,7 @@ class UserCameraPermission(models.Model):
     class Meta:
         verbose_name = "Разрешение на камеру"
         verbose_name_plural = "Разрешения на камеры"
-        unique_together = ['user', 'camera']  # Один пользователь не может иметь дублирующиеся разрешения на камеру
+        unique_together = ['user', 'camera']
         indexes = [
             models.Index(fields=['user', 'camera']),
         ]
