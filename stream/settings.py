@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'users',
     'reports',
     'admin_auto_filters',
+    'django_extensions',  # Исправлено: убрана лишняя запятая
 ]
 
 MIDDLEWARE = [
@@ -120,7 +121,7 @@ LOGGING = {
     'loggers': {
         'cameras': {
             'handlers': ['file', 'console'],
-            'level': 'DEBUG',  # Изменено на DEBUG
+            'level': 'DEBUG',
             'propagate': True,
         },
         '': {
@@ -140,7 +141,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / "static",]
+STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
