@@ -31,5 +31,3 @@ def log_url_patterns():
 # Вызов логирования при загрузке модуля
 log_url_patterns()
 
-#if __name__ == '__main__':
-#    log_url_patterns()

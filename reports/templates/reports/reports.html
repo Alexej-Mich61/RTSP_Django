@@ -1,7 +1,48 @@
 <!--reports/templates/reports/reports.html-->
 {% extends 'base.html' %}
-{% block title %}Отчёты{% endblock %}
 {% block content %}
-<h2>Отчёты</h2>
-<p>Страница отчётов (в разработке).</p>
+    <div class="container">
+        <h1>Отчёты</h1>
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        {% if not show_report %}
+            <p>Отладка: show_report = {{ show_report }}</p>
+            <form method="post" action="">
+                {% csrf_token %}
+                <button type="submit" name="generate_report" value="1" class="btn btn-primary">Загрузить отчёт</button>
+            </form>
+        {% else %}
+            <p>Отладка: show_report = {{ show_report }}</p>
+            <h2>Отчёт по зданиям и камерам</h2>
+            {% for building in report_data %}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3>{{ building.name }}</h3>
+                    </div>
+                    <div class="card-body">
+                        {% for camera in building.cameras %}
+                            <div class="card mb-2">
+                                <div class="card-body">
+                                    <p><strong>Название камеры:</strong> {{ camera.name }}</p>
+                                    <p><strong>HLS путь:</strong> {{ camera.hls_path }}</p>
+                                    <p><strong>RTSP поток:</strong> {{ camera.rtsp_stream }}</p>
+                                    <p><strong>Пользователи с доступом (группа Users):</strong>
+                                        {% if camera.allowed_users %}
+                                            {{ camera.allowed_users|join:", " }}
+                                        {% else %}
+                                            Нет разрешений
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% empty %}
+                <p>Нет данных для отчёта.</p>
+            {% endfor %}
+            <a href="{% url 'reports' %}" class="btn btn-secondary mt-3">Вернуться</a>
+        {% endif %}
+    </div>
 {% endblock %}
