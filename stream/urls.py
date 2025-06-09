@@ -4,14 +4,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect  # Импортируем redirect для других случаев
 from cameras import views
-import stream.views  # Импортируем наше новое представление
+import stream.redirect  # Изменили импорт на redirect.py
 
 logger = logging.getLogger(__name__)
 logger.info("Загрузка stream.urls")
 
 # Инициализация маршрутов
 urlpatterns = [
-    path('', stream.views.redirect_to_buildings),  # Редирект через представление
+    path('', stream.redirect.redirect_to_buildings),  # Редирект через представление из redirect.py
     path('admin/', admin.site.urls),
     path('cameras/', include('cameras.urls')),
     path('users/', include('users.urls')),
